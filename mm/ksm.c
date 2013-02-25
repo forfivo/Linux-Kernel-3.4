@@ -36,6 +36,7 @@
 #include <linux/hash.h>
 #include <linux/freezer.h>
 #include <linux/oom.h>
+#include <linux/zentune.h>
 
 #include <asm/tlbflush.h>
 #include "internal.h"
@@ -184,10 +185,18 @@ static unsigned long ksm_pages_unshared;
 static unsigned long ksm_rmap_items;
 
 /* Number of pages ksmd should scan in one batch */
+#if defined(CONFIG_ZEN_DEFAULT)	
 static unsigned int ksm_thread_pages_to_scan = 100;
+#elif defined(CONFIG_ZEN_CUSTOM)
+static unsigned int ksm_thread_pages_to_scan = ksm_thread_pages_to_scan_custom;
+#endif
 
 /* Milliseconds ksmd should sleep between batches */
+#if defined(CONFIG_ZEN_DEFAULT)	
 static unsigned int ksm_thread_sleep_millisecs = 20;
+#elif defined(CONFIG_ZEN_CUSTOM)
+static unsigned int ksm_thread_sleep_millisecs = ksm_thread_sleep_millisecs_custom;
+#endif
 
 #define KSM_RUN_STOP	0
 #define KSM_RUN_MERGE	1

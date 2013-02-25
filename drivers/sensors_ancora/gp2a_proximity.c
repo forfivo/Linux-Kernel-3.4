@@ -78,7 +78,7 @@ VO=1    0x20      0x0F	0x00
 	#endif
 #endif
 
-#define SENSOR_DEFAULT_DELAY            (200)   /* 200 ms */
+#define SENSOR_DEFAULT_DELAY            (800)   /* 200 ms */
 #define SENSOR_MAX_DELAY                (2000)  /* 2000 ms */
 #define ABS_STATUS                      (ABS_BRAKE)
 #define ABS_WAKE                        (ABS_MISC)

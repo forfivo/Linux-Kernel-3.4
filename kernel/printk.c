@@ -42,6 +42,8 @@
 #include <linux/notifier.h>
 #include <linux/rculist.h>
 #include <mach/msm_rtb.h>
+#include <linux/zentune.h>
+
 #include <asm/uaccess.h>
 
 /*
@@ -784,6 +786,7 @@ static int have_callable_console(void)
 
 asmlinkage int printk(const char *fmt, ...)
 {
+#if defined(CONFIG_ZEN_DEFAULT) || (defined(CONFIG_ZEN_CUSTOM) && (printk_disabled == 0))
 	va_list args;
 	int r;
 #ifdef CONFIG_MSM_RTB
@@ -805,6 +808,9 @@ asmlinkage int printk(const char *fmt, ...)
 	va_end(args);
 
 	return r;
+#elif defined(CONFIG_ZEN_CUSTOM) && (printk_disabled == 1)  	
+	return 0;
+#endif
 }
 
 /* cpu currently holding logbuf_lock */
@@ -879,6 +885,7 @@ static inline void printk_delay(void)
 
 asmlinkage int vprintk(const char *fmt, va_list args)
 {
+#if defined(CONFIG_ZEN_DEFAULT) || (defined(CONFIG_ZEN_CUSTOM) && (printk_disabled == 0))
 	int printed_len = 0;
 	int current_log_level = default_message_loglevel;
 	unsigned long flags;
@@ -1017,6 +1024,9 @@ out_restore_irqs:
 
 	preempt_enable();
 	return printed_len;
+#elif defined(CONFIG_ZEN_CUSTOM) && (printk_disabled == 1)
+		return 0;
+#endif
 }
 EXPORT_SYMBOL(printk);
 EXPORT_SYMBOL(vprintk);

@@ -35,6 +35,8 @@
 #include <linux/buffer_head.h>
 #include <linux/pagevec.h>
 #include <trace/events/writeback.h>
+#include <linux/earlysuspend.h>
+#include <linux/zentune.h>
 
 /*
  * After a CPU has dirtied this many pages, balance_dirty_pages_ratelimited
@@ -58,10 +60,17 @@ static inline long sync_writeback_pages(unsigned long dirtied)
 
 /* The following parameters are exported via /proc/sys/vm */
 
+bool resume = true;
+
 /*
  * Start background writeback (via writeback threads) at this percentage
  */
-int dirty_background_ratio = 10;
+#if defined(CONFIG_ZEN_DEFAULT) 
+int dirty_background_ratio = 70;
+#elif defined(CONFIG_ZEN_CUSTOM)
+int dirty_background_ratio = dirty_background_ratio_custom;
+#endif
+
 
 /*
  * dirty_background_bytes starts at 0 (disabled) so that it is a function of
@@ -78,7 +87,14 @@ int vm_highmem_is_dirtyable;
 /*
  * The generator of dirty data starts writeback at this percentage
  */
-int vm_dirty_ratio = 20;
+ 
+#if defined(CONFIG_ZEN_DEFAULT) 
+int vm_dirty_ratio = 90;
+#elif defined(CONFIG_ZEN_CUSTOM)
+int vm_dirty_ratio = vm_dirty_ratio_custom;
+#endif
+
+
 
 /*
  * vm_dirty_bytes starts at 0 (disabled) so that it is a function of
@@ -89,13 +105,19 @@ unsigned long vm_dirty_bytes;
 /*
  * The interval between `kupdate'-style writebacks
  */
-unsigned int dirty_writeback_interval = 5 * 100; /* centiseconds */
-
+#if defined(CONFIG_ZEN_DEFAULT) 
+unsigned int dirty_writeback_interval = 60 * 100; /* centiseconds */
+#elif defined(CONFIG_ZEN_CUSTOM)
+unsigned int dirty_writeback_interval = dirty_writeback_interval_custom; /* centiseconds */
+#endif
 /*
  * The longest time for which data is allowed to remain dirty
  */
-unsigned int dirty_expire_interval = 30 * 100; /* centiseconds */
-
+#if defined(CONFIG_ZEN_DEFAULT) 
+unsigned int dirty_expire_interval = 60 * 100; /* centiseconds */
+#elif defined(CONFIG_ZEN_CUSTOM)
+unsigned int dirty_expire_interval = dirty_expire_interval_custom; /* centiseconds */
+#endif
 /*
  * Flag that makes the machine dump writes/reads and block dirtyings.
  */
@@ -772,6 +794,21 @@ static struct notifier_block __cpuinitdata ratelimit_nb = {
 	.next		= NULL,
 };
 
+static void dirty_early_suspend(struct early_suspend *handler)
+{
+	dirty_writeback_interval = 60 * 100;
+}
+
+static void dirty_late_resume(struct early_suspend *handler)
+{
+	dirty_writeback_interval = 0;
+}
+
+static struct early_suspend dirty_suspend = {
+	.suspend = dirty_early_suspend,
+	.resume = dirty_late_resume,
+};
+
 /*
  * Called early on to tune the page writeback dirty limits.
  *
@@ -793,6 +830,8 @@ static struct notifier_block __cpuinitdata ratelimit_nb = {
 void __init page_writeback_init(void)
 {
 	int shift;
+	
+	register_early_suspend(&dirty_suspend);
 
 	writeback_set_ratelimit();
 	register_cpu_notifier(&ratelimit_nb);

@@ -31,11 +31,7 @@
 static union {
 	spinlock_t lock;
 	char pad[L1_CACHE_BYTES];
-} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp = {
-	[0 ... (NR_LOCKS - 1)] = {
-		.lock =  __RAW_SPIN_LOCK_UNLOCKED(atomic64_lock.lock),
-	},
-};
+} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp;
 
 static inline spinlock_t *lock_addr(const atomic64_t *v)
 {

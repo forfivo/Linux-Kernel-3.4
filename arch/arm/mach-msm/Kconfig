@@ -2014,6 +2014,33 @@ config BT_MSM_PINTEST
 	  This driver provides support for verifying the MSM to BT pin
 	  connectivity.
 
+choice
+	prompt "RAM options (NORMALMEM, BIGMEM, MAXMEM, PERSONAL)"
+
+config ANCORA_NORMALMEM
+       bool "select NORMAL memory config"
+       help 
+		Enable 352MB memory config. Breaks 720p only.	
+
+config ANCORA_BIGMEM
+       bool "select BIGMEM memory config"
+       help 
+		Enable 352MB memory config. Breaks 720p only.
+
+config ANCORA_HADI
+       bool "select HADI memory config"
+       help 
+		Enable 377MB memory config with working HD
+
+endchoice
+
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
+
 config MSM_FAKE_BATTERY
 		depends on POWER_SUPPLY
 		default n

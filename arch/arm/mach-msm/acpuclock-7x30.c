@@ -52,6 +52,8 @@
 #define VDD_RAW(mv) (((MV(mv) / V_STEP) - 30) | VREG_DATA)
 
 #define MAX_AXI_KHZ 192000
+#define SEMC_ACPU_MIN_UV_MV 775U
+#define SEMC_ACPU_MAX_UV_MV 1500U
 
 extern int charging_boot;
 #define LPM_LOW_CPU_CLK 245760
@@ -59,6 +61,8 @@ extern int charging_boot;
 struct clock_state {
 	struct clkctl_acpu_speed	*current_speed;
 	struct mutex			lock;
+	uint32_t			acpu_switch_time_us;
+	uint32_t			vdd_switch_time_us;
 	struct clk			*ebi1_clk;
 };
 
@@ -626,3 +630,55 @@ static int __init acpuclk_7x30_init(struct acpuclk_soc_data *soc_data)
 struct acpuclk_soc_data acpuclk_7x30_soc_data __initdata = {
 	.init = acpuclk_7x30_init,
 };
+
+#ifdef CONFIG_CPU_FREQ_VDD_LEVELS
+ssize_t acpuclk_get_vdd_levels_str(char *buf)
+{
+	int i, len = 0;
+	if (buf)
+	{
+		mutex_lock(&drv_state.lock);
+		for (i = 0; acpu_freq_tbl[i].acpu_clk_khz; i++)
+		{
+			if(acpu_freq_tbl[i].use_for_scaling==1)
+			{
+				len += sprintf(buf + len, "%8u: %4d\n", acpu_freq_tbl[i].acpu_clk_khz, acpu_freq_tbl[i].vdd_mv);
+			}
+		}
+		mutex_unlock(&drv_state.lock);
+	}
+	return len;
+}
+
+void acpuclk_set_vdd(unsigned int khz, int vdd)
+{
+	int i;
+	unsigned int new_vdd;
+	vdd = vdd / V_STEP * V_STEP;
+	mutex_lock(&drv_state.lock);
+	for (i = 0; acpu_freq_tbl[i].acpu_clk_khz; i++)
+	{
+		if(acpu_freq_tbl[i].use_for_scaling==1)
+		{
+			if (khz == 0)
+				new_vdd = min(max((acpu_freq_tbl[i].vdd_mv + vdd), SEMC_ACPU_MIN_UV_MV), SEMC_ACPU_MAX_UV_MV);
+			else if (acpu_freq_tbl[i].acpu_clk_khz == khz)
+				new_vdd = min(max((unsigned int)vdd, SEMC_ACPU_MIN_UV_MV), SEMC_ACPU_MAX_UV_MV);
+			else continue; 
+		}
+		
+    if (new_vdd > SEMC_ACPU_MAX_UV_MV)
+    {
+      new_vdd = SEMC_ACPU_MAX_UV_MV;
+    }
+    else if (new_vdd < SEMC_ACPU_MIN_UV_MV)
+    {
+      new_vdd = SEMC_ACPU_MIN_UV_MV;
+    }
+    
+			acpu_freq_tbl[i].vdd_mv = new_vdd;
+			acpu_freq_tbl[i].vdd_raw = VDD_RAW(new_vdd);
+	}
+	mutex_unlock(&drv_state.lock);
+}
+#endif

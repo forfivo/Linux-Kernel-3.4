@@ -466,7 +466,7 @@ static char *msm_power_supplied_to[] = {
 	"battery",
 };
 
-#define BATT_CHECK_INTERVAL	(5 * TIME_UNIT_SECOND) // every 5 sec
+#define BATT_CHECK_INTERVAL	(15 * TIME_UNIT_SECOND) // every 15 sec
 
 static unsigned int charging_start_time = 0;
 

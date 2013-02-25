@@ -148,11 +148,11 @@ struct device *switch_dev;
 EXPORT_SYMBOL(switch_dev);
 
 #ifdef CONFIG_MSM_MORE_MEMORY // 351 MB of free RAM
-#define MSM_PMEM_SF_SIZE          0x1800000 // 25.165.824 Bytes =  24 MB
-#define MSM_PMEM_ADSP_SIZE        0x2A05000 // 44.060.672 Bytes =  42 MB
+#define MSM_PMEM_SF_SIZE          0x1600000//0x1800000 // 25.165.824 Bytes =  24 MB
+#define MSM_PMEM_ADSP_SIZE        0X1100000//0x2A05000 // 44.060.672 Bytes =  42 MB
 #else                         // 347 MB of free RAM
-#define MSM_PMEM_SF_SIZE          0x1A00000 // 27.262.976 Bytes =  26 MB
-#define MSM_PMEM_ADSP_SIZE        0x2D00000 // 47.185.920 Bytes =  45 MB
+#define MSM_PMEM_SF_SIZE          0x1600000//0x1A00000 // 27.262.976 Bytes =  26 MB
+#define MSM_PMEM_ADSP_SIZE        0X1100000//0x2D00000 // 47.185.920 Bytes =  45 MB
 #endif
 
 #define MSM_FLUID_PMEM_ADSP_SIZE  0x2800000 // 41.943.040 Bytes =  40 MB
@@ -305,6 +305,10 @@ static struct sec_jack_buttons_zone sec_jack_buttons_zones[] = {
 		.adc_high	= 690,
 	},
 };
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_2_PHASE
+int set_two_phase_freq(int cpufreq);
 #endif
 
 static int sec_jack_get_det_jack_state(void)
@@ -1923,24 +1927,24 @@ static struct platform_device amp_i2c_gpio_device = {
 #ifdef CONFIG_MACH_ANCORA_TMO
 static struct snd_set_ampgain init_ampgain[] = {
 	[0] = {
-		.in1_gain = 2,
-		.in2_gain = 2,
+		.in1_gain = 4,
+		.in2_gain = 4,
 		.hp_att = 31,
 		.hp_gainup = 0,
 		.sp_att = 31,
 		.sp_gainup = 0,
 	},
 	[1] = { /* [HSS] headset_call, speaker_call */
-		.in1_gain = 2,
-		.in2_gain = 0,
-		.hp_att = 14,
+		.in1_gain = 4,
+		.in2_gain = 2,
+		.hp_att = 31,
 		.hp_gainup = 0,
 		.sp_att = 31,
 		.sp_gainup = 0,
 	},
 	[2] = { /* [HSS] headset_speaker */
-		.in1_gain = 2,
-		.in2_gain = 0,
+		.in1_gain = 4,
+		.in2_gain = 2,
 		.hp_att = 5,
 		.hp_gainup = 0,
 		.sp_att = 31,
@@ -1950,23 +1954,23 @@ static struct snd_set_ampgain init_ampgain[] = {
 #else
 static struct snd_set_ampgain init_ampgain[] = {
 	[0] = {
-		.in1_gain = 2,
-		.in2_gain = 2,
+		.in1_gain = 4,
+		.in2_gain = 4,
 		.hp_att = 26,
 		.hp_gainup = 0,
 		.sp_att = 31,
 		.sp_gainup = 0,
 	},
 	[1] = { /* [HSS] headset_call, speaker_call */
-		.in1_gain = 2,
-		.in2_gain = 0,
-		.hp_att = 14,
+		.in1_gain = 5,
+		.in2_gain = 2,
+		.hp_att = 31,
 		.hp_gainup = 0,
 		.sp_att = 31,
 		.sp_gainup = 0,
 	},
 	[2] = { /* [HSS] headset_speaker */
-		.in1_gain = 5,
+		.in1_gain = 6,
 		.in2_gain = 2,
 		.hp_att = 13,
 		.hp_gainup = 0,
@@ -6388,7 +6392,7 @@ static struct mmc_platform_data msm7x30_sdc1_data = {
 };
 #else
 static struct mmc_platform_data msm7x30_sdc1_data = {
-	.ocr_mask	= MMC_VDD_165_195 | MMC_VDD_27_28 | MMC_VDD_28_29,
+	.ocr_mask	= MMC_VDD_165_195 | MMC_VDD_21_22 | MMC_VDD_22_23,//MMC_VDD_27_28 | MMC_VDD_28_29,
 	.translate_vdd	= msm_sdcc_setup_power,
 	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
 	.status	        = wlan_status,
@@ -7389,6 +7393,10 @@ static void __init msm7x30_init(void)
 	msm7x30_init_mmc();
 #ifdef CONFIG_DEVICE_NAND
 	msm7x30_init_nand();
+#endif
+
+#ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_2_PHASE
+	set_two_phase_freq(1014000);
 #endif
 
 //	sensors_ldo_init();

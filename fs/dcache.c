@@ -33,6 +33,7 @@
 #include <linux/bootmem.h>
 #include <linux/fs_struct.h>
 #include <linux/hardirq.h>
+#include <linux/zentune.h>
 #include <linux/bit_spinlock.h>
 #include <linux/rculist_bl.h>
 #include <linux/prefetch.h>
@@ -76,7 +77,11 @@
  *   dentry1->d_lock
  *     dentry2->d_lock
  */
-int sysctl_vfs_cache_pressure __read_mostly = 100;
+#if defined(CONFIG_ZEN_DEFAULT)	
+int sysctl_vfs_cache_pressure __read_mostly = 30;
+#elif defined(CONFIG_ZEN_CUSTOM)	
+int sysctl_vfs_cache_pressure __read_mostly = vfs_cache_pressure_custom;
+#endif
 EXPORT_SYMBOL_GPL(sysctl_vfs_cache_pressure);
 
 static __cacheline_aligned_in_smp DEFINE_SPINLOCK(dcache_lru_lock);

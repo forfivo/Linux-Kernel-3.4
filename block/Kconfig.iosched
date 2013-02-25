@@ -39,6 +39,15 @@ config IOSCHED_CFQ
 
 	  Note: If BLK_CGROUP=m, then CFQ can be built only as module.
 
+config IOSCHED_ZEN
+  tristate "Zen I/O scheduler"
+  default y
+  ---help---
+    FCFS, dispatches are back-inserted, deadlines ensure fairness.
+    Should work best with devices where there is no travel delay.
+
+
+
 config CFQ_GROUP_IOSCHED
 	bool "CFQ Group Scheduling support"
 	depends on IOSCHED_CFQ && BLK_CGROUP
@@ -132,6 +141,7 @@ config DEFAULT_IOSCHED
 	default "row" if DEFAULT_ROW
 	default "sio" if DEFAULT_SIO
 	default "vr" if DEFAULT_VR
+	default "zen" if DEFAULT_ZEN
 
 endmenu
 

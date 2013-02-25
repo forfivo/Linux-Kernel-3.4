@@ -494,7 +494,6 @@ struct msmfb_metadata {
 		struct mdp_blend_cfg blend_cfg;
 	} data;
 };
-
 struct mdp_page_protection {
 	uint32_t page_protection;
 };

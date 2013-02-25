@@ -29,6 +29,45 @@ config IRQ_WORK
 
 menu "General setup"
 
+choice
+	prompt "Zen-Tune Profile"
+	default ZEN_CUSTOM
+	---help---
+	  Select the tunable profile to be used.
+
+config ZEN_DEFAULT
+	bool "Default"
+	---help---
+	  This option sets tunables to default.
+
+	    DIRTY_RATIO: 90
+	    BACKGROUND_DIRTY_RATIO: 70
+	   *BFS ONLY*
+	    ISO_CPU: 70
+	    RR_INTERVAL: 6
+	   *CFS ONLY*
+	    SCHED LATENCY: 6 ms
+	    SCHED LATENCY GRANULARITY: 0.75 ms
+
+
+config ZEN_CUSTOM
+	bool "Custom"
+	---help---
+	  This option sets tunables to optimal desktop values.
+	  Changes to these values can be adjusted in include/linux/zentune.h
+
+	    DIRTY_RATIO: 90
+	    BACKGROUND_DIRTY_RATIO: 70
+	   *BFS ONLY*
+	    ISO_CPU: 25
+	    RR_INTERVAL: 3
+	   *CFS ONLY*
+	    SCHED LATENCY: 3 ms
+	    SCHED LATENCY GRANULARITY: 0.3 ms
+
+
+endchoice
+
 config EXPERIMENTAL
 	bool "Prompt for development and/or incomplete code/drivers"
 	---help---
@@ -714,6 +753,18 @@ config FAIR_GROUP_SCHED
 	bool "Group scheduling for SCHED_OTHER"
 	depends on CGROUP_SCHED
 	default CGROUP_SCHED
+
+config CFS_BANDWIDTH
+	bool "CPU bandwidth provisioning for FAIR_GROUP_SCHED"
+	depends on EXPERIMENTAL
+	depends on FAIR_GROUP_SCHED
+	default n
+	help
+	  This option allows users to define CPU bandwidth rates (limits) for
+	  tasks running within the fair group scheduler.  Groups with no limit
+	  set are considered to be unconstrained and will run with no
+	  restriction.
+	  See tip/Documentation/scheduler/sched-bwc.txt for more information.
 
 config RT_GROUP_SCHED
 	bool "Group scheduling for SCHED_RR/FIFO"

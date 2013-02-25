@@ -63,7 +63,7 @@
 #endif
 #define TS_READ_VERSION_ADDR	0x63
 
-static int debug_level = 5; 
+static int debug_level = 1; 
 static struct vreg *vreg_ldo2;
 
 #define debugprintk(level,x...)  if(debug_level>=level) printk(x)
