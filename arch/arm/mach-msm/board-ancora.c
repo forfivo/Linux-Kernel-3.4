@@ -137,7 +137,6 @@
 #define GPIO_WLAN_LEVEL_HIGH	1
 #define GPIO_WLAN_LEVEL_NONE	2
 
-#define GPIO_BT_RESET		146
 #define WLAN_EN_GPIO		144 //WLAN_BT_EN
 #define WLAN_RESET		127 //Reset
 #define WLAN_HOST_WAKE		111
@@ -6317,25 +6316,7 @@ out:
 	/* should return 0 only */
 	return 0;
 }
-
 #endif
-
-static void (*wlan_status_notify_cb)(int card_present, void *dev_id);
-static void *wlan_status_notify_cb_devid;
-int wlan_register_status_notify(void (*callback)(int, void *),
-	void *dev_id)
-{
-	wlan_status_notify_cb = callback;
-	wlan_status_notify_cb_devid = dev_id;
-	return 0;
-}
-
-static unsigned int wlan_status(struct device *dev)
-{
-	printk("wlan_status called....\n");
-	return gpio_get_value (WLAN_RESET);
-}
-
 #endif
 
 #ifdef CONFIG_MMC_MSM_SDC4_SUPPORT
@@ -6395,8 +6376,6 @@ static struct mmc_platform_data msm7x30_sdc1_data = {
 	.ocr_mask	= MMC_VDD_165_195 | MMC_VDD_21_22 | MMC_VDD_22_23,//MMC_VDD_27_28 | MMC_VDD_28_29,
 	.translate_vdd	= msm_sdcc_setup_power,
 	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
-	.status	        = wlan_status,
-	.register_status_notify = wlan_register_status_notify,
 	.msmsdcc_fmin	= 144000,
 	.msmsdcc_fmid	= 24576000,
 	.msmsdcc_fmax	= 24576000,
@@ -7580,9 +7559,7 @@ else
 		(smem_get_entry(SMEM_POWER_ON_STATUS_INFO, &smem_size));
 	printk(KERN_NOTICE "Boot Reason = 0x%02x\n", boot_reason);
 
-#ifdef WLAN_STATIC_BUF
-	init_wifi_mem();
-#endif
+	brcm_wlan_init();
 }
 
 static unsigned pmem_sf_size = MSM_PMEM_SF_SIZE;
